@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gotia.example/schemas/assessment-result/1.0.0",
+  "title": "gotIA Agentic Readiness — as-is / target spec",
+  "type": "object",
+  "required": ["kind", "assessment_id", "scoring_model_version", "profile", "dimensions", "summary"],
+  "properties": {
+    "kind": { "enum": ["as-is", "target"] },
+    "assessment_id": { "type": "string" },
+    "scoring_model_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "profile": {
+      "type": "object",
+      "required": ["sector", "size"],
+      "properties": {
+        "sector": { "enum": ["moda", "electronica", "alimentacion", "hogar", "belleza", "marketplace", "b2b", "otro"] },
+        "size": { "enum": ["pyme", "mid-market", "enterprise"] },
+        "online_revenue_eur": { "type": "number", "minimum": 0 },
+        "commerce_platform": { "type": "string" },
+        "core_systems": { "type": "array", "items": { "type": "string" } },
+        "channels": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "dimensions": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "required": ["id", "score", "weight", "confidence", "evidence_refs"],
+        "properties": {
+          "id": { "enum": ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10"] },
+          "score": { "type": "number", "minimum": 1, "maximum": 5 },
+          "weight": { "type": "number", "minimum": 0, "maximum": 100 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence_refs": { "type": "array", "items": { "type": "string" } },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["ipa", "ceiling", "effective_level", "max_autonomy"],
+      "properties": {
+        "ipa": { "type": "number", "minimum": 1, "maximum": 5 },
+        "ceiling": { "type": "number" },
+        "effective_level": { "enum": ["N1", "N2", "N3", "N4", "N5"] },
+        "max_autonomy": { "enum": ["A0", "A1", "A2", "A3"] },
+        "limiting_dimensions": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "agent_backlog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["use_case_id", "viability", "target_autonomy", "allowed_autonomy_now", "spec_path"],
+        "properties": {
+          "use_case_id": { "type": "string", "pattern": "^UC-\\d{2}$" },
+          "viability": { "type": "number", "minimum": 0, "maximum": 1 },
+          "target_autonomy": { "enum": ["A0", "A1", "A2", "A3"] },
+          "allowed_autonomy_now": { "enum": ["A0", "A1", "A2", "A3"] },
+          "risk_class": { "enum": ["minimo", "limitado", "alto", "prohibido"] },
+          "spec_path": { "type": "string" }
+        }
+      }
+    }
+  }
+}

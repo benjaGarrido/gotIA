@@ -1,0 +1,667 @@
+<title>gotIA Agentic Readiness</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working document. Left-aligned reading column, wide panels for the instrument (scores, radar, cost), a layered stack for architecture. */
+:root{
+  --bg:#F4F6F8; --surface:#FFFFFF; --ink:#13202C; --muted:#56657A; --line:#D9E0E7; --soft:#EAEFF4;
+  --accent:#2442A8; --accent-soft:#E3E9FB; --target:#B86E00; --target-soft:#FBF0DF;
+  --good:#1E7A4B; --good-soft:#E1F3E9; --warn:#A86400; --warn-soft:#FBEEDB; --bad:#B0281F; --bad-soft:#FBE5E3;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E131A; --surface:#151C25; --ink:#E5EAF0; --muted:#94A2B2; --line:#26313E; --soft:#1C2531;
+  --accent:#8EA5FF; --accent-soft:#1E2846; --target:#F0A63A; --target-soft:#3A2B14;
+  --good:#5DC48E; --good-soft:#15301F; --warn:#E8A43E; --warn-soft:#352812; --bad:#F2807A; --bad-soft:#3A1A19;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E131A; --surface:#151C25; --ink:#E5EAF0; --muted:#94A2B2; --line:#26313E; --soft:#1C2531;
+  --accent:#8EA5FF; --accent-soft:#1E2846; --target:#F0A63A; --target-soft:#3A2B14;
+  --good:#5DC48E; --good-soft:#15301F; --warn:#E8A43E; --warn-soft:#352812; --bad:#F2807A; --bad-soft:#3A1A19;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 64px}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.05;font-weight:700}
+h2{font-size:clamp(22px,3vw,28px);font-weight:700;line-height:1.15}
+h3{font-size:17px;font-weight:600}
+p{margin:0;max-width:68ch}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+header.top{padding-block:40px 28px;display:grid;gap:18px;border-bottom:1px solid var(--line)}
+.verdict{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:baseline}
+.go{font-family:var(--f-mono);font-weight:500;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--good-soft);color:var(--good);border:1px solid var(--good)}
+.lede{font-size:17px;color:var(--ink)}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+nav.toc a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line)}
+nav.toc a:hover{color:var(--ink);border-color:var(--ink)}
+
+section{padding-block:44px 8px;display:grid;gap:20px}
+.sec-head{display:grid;gap:8px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px}
+@media (max-width:860px){.grid2{grid-template-columns:minmax(0,1fr)}}
+
+/* questions summary */
+.qs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.qs div{background:var(--surface);padding:14px 16px;display:grid;gap:4px;min-width:0}
+.qs b{font-family:var(--f-display);font-size:15px}
+.qs span{font-size:13.5px;color:var(--muted)}
+@media (max-width:760px){.qs{grid-template-columns:minmax(0,1fr)}}
+
+/* profile */
+.profile{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;font-size:13px}
+.chip{font-family:var(--f-mono);font-size:12px;padding:3px 8px;border-radius:4px;background:var(--soft);color:var(--ink);white-space:nowrap}
+.chip.ex{background:var(--target-soft);color:var(--target)}
+
+/* sliders */
+.dims{display:grid;gap:2px}
+.dim{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--soft)}
+.dim:last-child{border-bottom:0}
+.dim .name{display:grid;gap:0;min-width:0}
+.dim .name b{font-weight:500;font-size:14px}
+.dim .name small{font-size:12px;color:var(--muted)}
+.dim .ctl{display:grid;gap:2px}
+.dim .ctl label{font-family:var(--f-mono);font-size:11px;color:var(--muted);display:flex;justify-content:space-between}
+.dim .ctl label output{color:var(--ink)}
+.dims-head{display:grid;grid-template-columns:minmax(0,1fr) 92px 92px;gap:10px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-bottom:6px;border-bottom:1px solid var(--line)}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+input[type=range].t{accent-color:var(--target)}
+.wtag{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+
+/* results */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.kpi{background:var(--surface);padding:12px 14px;display:grid;gap:2px;min-width:0}
+.kpi .v{font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1.1}
+.kpi .l{font-size:12px;color:var(--muted)}
+@media (max-width:520px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.radar-box{display:flex;justify-content:center}
+.radar-box svg{width:100%;max-width:420px;height:auto}
+.legend{display:flex;gap:16px;font-size:12px;color:var(--muted);justify-content:center;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:6px}
+.callout{border-left:3px solid var(--warn);background:var(--warn-soft);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;font-size:14px}
+.callout.ok{border-color:var(--good);background:var(--good-soft)}
+.callout b{font-weight:600}
+.btn{font:inherit;font-size:13px;padding:6px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* gaps */
+.gaps{display:grid;gap:8px}
+.gap{display:grid;grid-template-columns:150px minmax(0,1fr) 54px;gap:12px;align-items:center;font-size:13.5px}
+.gap .bar{height:14px;background:var(--soft);border-radius:3px;position:relative;overflow:hidden}
+.gap .bar span{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
+.gap .bar span.blk{background:var(--bad)}
+.gap .lbl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:520px){.gap{grid-template-columns:110px minmax(0,1fr) 44px}}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--soft);vertical-align:top}
+th{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface);border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+td.num{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.p-good{background:var(--good-soft);color:var(--good)}
+.p-warn{background:var(--warn-soft);color:var(--warn)}
+.p-bad{background:var(--bad-soft);color:var(--bad)}
+.p-info{background:var(--accent-soft);color:var(--accent)}
+
+/* roadmap */
+.phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.phases{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.phases{grid-template-columns:minmax(0,1fr)}}
+.phase{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:10px;align-content:start}
+.phase .when{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.phase ul{margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
+.phase .exit{font-size:12.5px;border-top:1px dashed var(--line);padding-top:8px;color:var(--muted)}
+.phase .exit b{color:var(--ink);font-weight:500}
+.timeline{display:grid;grid-template-columns:1.2fr 3fr 5fr 9fr;gap:3px;margin-top:4px}
+.timeline div{height:8px;border-radius:2px;background:var(--accent);opacity:.35}
+.timeline div:nth-child(2){opacity:.55}.timeline div:nth-child(3){opacity:.75}.timeline div:nth-child(4){opacity:1}
+.tl-scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+
+/* cost */
+.cost-in{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px}
+@media (max-width:520px){.cost-in{grid-template-columns:minmax(0,1fr)}}
+.field{display:grid;gap:4px;font-size:13px}
+.field label{color:var(--muted);font-size:12px}
+.field input,.field select{font:inherit;font-family:var(--f-mono);font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-size:13px;padding:6px 8px;border:0;background:var(--surface);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--surface)}
+.big{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.big div{display:grid;gap:2px}
+.big .v{font-family:var(--f-display);font-size:32px;font-weight:700;line-height:1.1}
+.big .r{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.stack{display:flex;height:22px;border-radius:3px;overflow:hidden;gap:2px}
+.stack span{display:block;height:100%}
+.formula{font-family:var(--f-mono);font-size:12px;color:var(--muted);background:var(--soft);padding:10px 12px;border-radius:4px;overflow-x:auto;white-space:pre}
+
+/* architecture */
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tabs button{font:inherit;font-size:13px;padding:7px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);color:var(--muted);cursor:pointer;display:grid;text-align:left;gap:0}
+.tabs button b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
+.tabs button[aria-selected=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.arch{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:12px}
+@media (max-width:760px){.arch{grid-template-columns:minmax(0,1fr)}}
+.layers{display:grid;gap:6px}
+.layer{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px}
+.layer > span{font-family:var(--f-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+@media (max-width:520px){.layer{grid-template-columns:minmax(0,1fr)}}
+.comps{display:flex;flex-wrap:wrap;gap:6px}
+.comp{font-size:12.5px;padding:4px 9px;border-radius:4px;border:1px solid var(--line);background:var(--bg);color:var(--ink);transition:opacity .2s}
+.comp.new{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:500}
+.comp.future{opacity:.38;border-style:dashed}
+.comp.gone{opacity:.38;text-decoration:line-through}
+.comp.risk{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.side{display:grid;gap:6px;align-content:start}
+.side .layer{grid-template-columns:minmax(0,1fr)}
+.arch-note{font-size:14px}
+
+/* SDD */
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.flow .n{padding:8px 12px;border:1px solid var(--line);border-radius:4px;background:var(--surface);font-size:13px;display:grid;gap:0}
+.flow .n b{font-family:var(--f-mono);font-weight:500;font-size:12.5px}
+.flow .n small{color:var(--muted);font-size:11.5px}
+.flow .ar{color:var(--muted);font-family:var(--f-mono)}
+.flow .n.loop{border-color:var(--accent);background:var(--accent-soft)}
+pre.tree{font-family:var(--f-mono);font-size:12.5px;line-height:1.6;margin:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow-x:auto;color:var(--ink)}
+pre.tree .c{color:var(--muted)}
+.cards3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:860px){.cards3{grid-template-columns:minmax(0,1fr)}}
+.cards3 .panel{display:grid;gap:8px;align-content:start}
+.cards3 ul{margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">gotIA · evaluación de producto · módulo de assessment agéntico</div>
+  <h1>Agentic Readiness Assessment para commerce</h1>
+  <div class="verdict">
+    <span class="go">Veredicto: GO con alcance acotado</span>
+    <span class="muted">Assessment asistido por agentes + consultor · MVP en ~11 semanas · 3–5 pilotos</span>
+  </div>
+  <p class="lede">El commerce sale del assessment con un paquete de specs ejecutables (estado actual, estado objetivo y una spec por agente), no solo con un informe. Esas specs alimentan directamente la implantación. Esto es lo que diferencia el módulo de los modelos de madurez de consultora.</p>
+  <nav class="toc" aria-label="Secciones">
+    <a href="#preguntas">Las seis preguntas</a><a href="#diagnostico">Punto de partida</a><a href="#atacar">Qué atacar</a><a href="#roadmap">Roadmap</a><a href="#coste">Coste</a><a href="#arquitectura">Arquitectura</a><a href="#capas">Gobierno y seguridad</a><a href="#sdd">Enfoque SDD</a><a href="#producto">Encaje en gotIA</a>
+  </nav>
+</header>
+
+<section id="preguntas">
+  <div class="sec-head"><div class="eyebrow">Qué responde el módulo</div><h2>Las seis preguntas del commerce, y qué entrega gotIA para cada una</h2></div>
+  <div class="qs">
+    <div><b>¿Dónde estoy?</b><span>Puntuación 1–5 en 10 capas, índice ponderado (IPA), nivel N1–N5 y autonomía máxima permitida. Todo como <span class="mono">as-is.spec.yaml</span>.</span></div>
+    <div><b>¿Qué ataco?</b><span>Brechas priorizadas por peso e impacto en el bloqueo, y agentes candidatos con su viabilidad hoy.</span></div>
+    <div><b>¿Cuál es el roadmap?</b><span>Cuatro fases (F0–F3) con condiciones de salida medibles. Ningún agente autónomo antes de tener gobierno.</span></div>
+    <div><b>¿Cuánto cuesta?</b><span>Inversión y operación anual con fórmula visible y parámetros editables, en horquilla.</span></div>
+    <div><b>¿Cómo evoluciona la arquitectura?</b><span>Cinco etapas (E0–E4) expresadas en capacidades, con los componentes que entran en cada fase.</span></div>
+    <div><b>¿Qué riesgos asumo?</b><span>Gobernanza, seguridad, cumplimiento (AI Act, RGPD, PCI-DSS) y operación como capas evaluadas y como techo del nivel.</span></div>
+  </div>
+</section>
+
+<section id="diagnostico">
+  <div class="sec-head">
+    <div class="eyebrow">01 · Punto de partida</div>
+    <h2>Diagnóstico por capas</h2>
+    <p class="muted">Prototipo del motor de scoring de la spec (<span class="mono">maturity-model.md</span> §4). Mueve los controles: la puntuación, el techo y la autonomía se recalculan con las mismas reglas deterministas.</p>
+  </div>
+  <div class="profile"><span class="chip ex">Perfil de ejemplo</span><span class="chip">Moda online</span><span class="chip">Mid-market · 40 M€</span><span class="chip">SaaS e-commerce + ERP pyme</span><span class="chip">Web, app, 2 marketplaces</span></div>
+  <div class="grid2">
+    <div class="panel">
+      <div class="dims-head"><span>Capa · peso</span><span>Actual</span><span>Objetivo 18 m</span></div>
+      <div class="dims" id="dims"></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="reset" type="button">Restaurar perfil de ejemplo</button></div>
+    </div>
+    <div style="display:grid;gap:16px;align-content:start;min-width:0">
+      <div class="kpis">
+        <div class="kpi"><span class="v mono" id="k-ipa">–</span><span class="l">IPA (1–5)</span></div>
+        <div class="kpi"><span class="v mono" id="k-ceil">–</span><span class="l">Techo gobierno/seg.</span></div>
+        <div class="kpi"><span class="v" id="k-lvl">–</span><span class="l">Nivel efectivo</span></div>
+        <div class="kpi"><span class="v" id="k-aut">–</span><span class="l">Autonomía máx. hoy</span></div>
+      </div>
+      <div class="panel" style="display:grid;gap:10px">
+        <div class="radar-box"><svg id="radar" viewBox="0 0 440 400" role="img" aria-label="Radar de madurez actual frente a objetivo"></svg></div>
+        <div class="legend"><span><i style="background:var(--accent)"></i>Actual</span><span><i style="background:var(--target)"></i>Objetivo 18 meses</span></div>
+      </div>
+      <div class="callout" id="explain"></div>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Nivel</th><th>Nombre</th><th>Cómo se reconoce en un commerce</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">N1</td><td>Exploración</td><td>Chatbots generalistas a título individual, sin política. Shadow AI. Datos de producto y cliente dispersos.</td></tr>
+      <tr><td class="mono">N2</td><td>Asistido</td><td>Copilotos en tareas concretas (fichas de producto, respuestas a clientes) con humano siempre al volante.</td></tr>
+      <tr><td class="mono">N3</td><td>Agentes acotados</td><td>Agentes que usan herramientas (consultar pedido, crear devolución) con aprobación humana. Identidad, logs y evals básicos.</td></tr>
+      <tr><td class="mono">N4</td><td>Orquestado</td><td>Varios agentes en procesos completos, gobierno como código, evals en CI, coste por agente. Autonomía A2 en dominios maduros.</td></tr>
+      <tr><td class="mono">N5</td><td>Agentic-native</td><td>Agentes como unidad de trabajo; catálogo y checkout expuestos a agentes de terceros; autonomía A3 con presupuesto y kill-switch.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="atacar">
+  <div class="sec-head">
+    <div class="eyebrow">02 · Qué atacar</div>
+    <h2>Brechas priorizadas y agentes candidatos</h2>
+    <p class="muted">Prioridad = brecha × peso × factor de bloqueo. Gobernanza, seguridad y operación por debajo de 3 cuentan 1,5 veces porque impiden subir la autonomía de cualquier agente.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel" style="display:grid;gap:12px">
+      <h3>Brechas por prioridad</h3>
+      <div class="gaps" id="gaps"></div>
+      <div class="legend" style="justify-content:flex-start"><span><i style="background:var(--bad)"></i>Bloqueante (×1,5)</span><span><i style="background:var(--accent)"></i>Brecha normal</span></div>
+    </div>
+    <div class="panel" style="display:grid;gap:10px;align-content:start">
+      <h3>Lectura</h3>
+      <div id="gap-read" style="display:grid;gap:8px;font-size:14px"></div>
+    </div>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Agente candidato</th><th>Valor típico</th><th>Depende de</th><th>Autonomía objetivo</th><th>Viabilidad</th><th>Estado hoy</th></tr></thead>
+    <tbody id="uc"></tbody>
+  </table></div>
+</section>
+
+<section id="roadmap">
+  <div class="sec-head">
+    <div class="eyebrow">03 · Roadmap</div>
+    <h2>Cuatro fases, cada una con condición de salida medible</h2>
+    <p class="muted">Cada iniciativa nace como spec. La regla dura: ningún agente pasa a A2 sin haber cerrado antes las brechas de gobierno, seguridad y operación que lo habilitan.</p>
+  </div>
+  <div>
+    <div class="timeline" aria-hidden="true"><div></div><div></div><div></div><div></div></div>
+    <div class="tl-scale"><span>mes 0</span><span>mes 4</span><span>mes 9</span><span>mes 18</span></div>
+  </div>
+  <div class="phases">
+    <div class="phase"><div class="when">F0 · semanas 1–6</div><h3>Assessment y specs fundacionales</h3>
+      <ul><li>as-is y target spec</li><li>Constitución del cliente (principios de IA)</li><li>Backlog de agentes con spec borrador</li><li>Registro de riesgos inicial</li></ul>
+      <div class="exit"><b>Sale cuando</b> el comité aprueba el target y el presupuesto de F1.</div></div>
+    <div class="phase"><div class="when">F1 · meses 2–4</div><h3>Fundamentos y quick wins</h3>
+      <ul><li>Gateway de modelos, identidad de agentes</li><li>Trazas, evals básicos, política de IA</li><li>2–3 tools MCP sobre pedido, stock, catálogo</li><li>2 agentes en A0/A1 (catálogo, atención)</li></ul>
+      <div class="exit"><b>Sale cuando</b> hay agentes en producción con KPIs y D6, D7, D8 ≥ 2,5.</div></div>
+    <div class="phase"><div class="when">F2 · meses 5–9</div><h3>Escala</h3>
+      <ul><li>Orquestación multiagente y bus de eventos</li><li>Gobierno como código, evals en CI</li><li>FinOps por agente, centro de excelencia</li><li>4–6 agentes; primero en A2</li></ul>
+      <div class="exit"><b>Sale cuando</b> D6, D7, D8 ≥ 3,5 y un agente opera en A2 sin incidentes graves.</div></div>
+    <div class="phase"><div class="when">F3 · meses 10–18</div><h3>Agentic-native</h3>
+      <ul><li>Pricing e inventario en A2</li><li>Storefront para agentes de terceros</li><li>A2A con proveedores y transportistas</li><li>Bucle de mejora continua por spec</li></ul>
+      <div class="exit"><b>Sale cuando</b> IPA ≥ 3,8 y el canal agent-facing genera ventas.</div></div>
+  </div>
+</section>
+
+<section id="coste">
+  <div class="sec-head">
+    <div class="eyebrow">04 · Coste de implantación</div>
+    <h2>Estimador de inversión y operación</h2>
+    <p class="muted">Cifras orientativas en euros sin IVA, para calibrar con los pilotos. La remediación de datos e integración se escala con las brechas D3 y D4 del diagnóstico de arriba.</p>
+  </div>
+  <div class="grid2">
+    <div class="panel" style="display:grid;gap:14px">
+      <div class="field"><label id="size-l">Tamaño del commerce</label>
+        <div class="seg" role="group" aria-labelledby="size-l" id="size">
+          <button type="button" data-v="pyme">Pyme &lt;10 M€</button><button type="button" data-v="mid">Mid 10–100 M€</button><button type="button" data-v="ent">Enterprise</button>
+        </div></div>
+      <div class="cost-in">
+        <div class="field"><label for="a-s">Agentes simples</label><input id="a-s" type="number" min="0" max="20" value="2"></div>
+        <div class="field"><label for="a-m">Agentes medios</label><input id="a-m" type="number" min="0" max="20" value="2"></div>
+        <div class="field"><label for="a-c">Agentes complejos</label><input id="a-c" type="number" min="0" max="20" value="1"></div>
+        <div class="field"><label for="inter">Interacciones de agente al mes</label><input id="inter" type="number" min="0" step="1000" value="25000"></div>
+        <div class="field"><label for="tok">Tokens por interacción</label><input id="tok" type="number" min="0" step="500" value="6000"></div>
+        <div class="field"><label for="ppm">€ por millón de tokens (mezcla)</label><input id="ppm" type="number" min="0" step="0.5" value="4"></div>
+      </div>
+      <div class="formula" id="formula"></div>
+    </div>
+    <div class="panel" style="display:grid;gap:16px;align-content:start">
+      <div class="big">
+        <div><span class="eyebrow">Inversión F0–F3</span><span class="v mono" id="c-inv">–</span><span class="r" id="c-inv-r"></span></div>
+        <div><span class="eyebrow">Operación anual</span><span class="v mono" id="c-opx">–</span><span class="r" id="c-opx-r"></span></div>
+      </div>
+      <div class="stack" id="c-stack" aria-hidden="true"></div>
+      <div class="tbl-wrap" style="border:0"><table><tbody id="c-tbl"></tbody></table></div>
+      <p class="muted" style="font-size:13px" id="c-read"></p>
+    </div>
+  </div>
+</section>
+
+<section id="arquitectura">
+  <div class="sec-head">
+    <div class="eyebrow">05 · Evolución de arquitectura</div>
+    <h2>De integraciones punto a punto a plataforma agéntica gobernada</h2>
+    <p class="muted">Recomendaciones en capacidades, no en productos. La plataforma e-commerce del cliente se mantiene; lo que crece es lo que hay encima y alrededor.</p>
+  </div>
+  <div class="tabs" role="tablist" id="stages"></div>
+  <p class="arch-note" id="stage-note"></p>
+  <div class="arch">
+    <div class="layers" id="layers"></div>
+    <div class="side" id="side"></div>
+  </div>
+  <div class="legend" style="justify-content:flex-start"><span><span class="comp new" style="padding:1px 6px">nuevo</span> entra en esta etapa</span><span><span class="comp" style="padding:1px 6px">existente</span></span><span><span class="comp future" style="padding:1px 6px">futuro</span></span><span><span class="comp risk" style="padding:1px 6px">riesgo</span></span></div>
+</section>
+
+<section id="capas">
+  <div class="sec-head">
+    <div class="eyebrow">06 · Capas transversales</div>
+    <h2>Gobernanza, seguridad, datos y operación por etapa</h2>
+    <p class="muted">Son las capas que marcan el techo. Un commerce con buenas APIs y sin gobierno se queda en N2 aunque su tecnología permita más.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Capa</th><th>E1 Asistida</th><th>E2 Agentes con tools</th><th>E3 Orquestada</th><th>E4 Agentic-native</th></tr></thead>
+    <tbody>
+      <tr><td><b>Gobernanza</b></td><td>Política de uso aceptable; inventario de herramientas IA</td><td>Registro de agentes, owner por agente, HITL, evaluación de riesgo por caso</td><td>Gobierno como código: políticas derivadas de la spec aplicadas en runtime</td><td>Reporting regulatorio automatizado; métricas de riesgo</td></tr>
+      <tr><td><b>Seguridad</b></td><td>Redacción de datos personales en el gateway; secretos gestionados</td><td>Identidad por agente, mínimo privilegio, defensa frente a prompt injection, pagos fuera del contexto</td><td>Autorización por acción, red-teaming periódico, anomalías por agente</td><td>Zero-trust agente a agente, credenciales delegadas y efímeras, mandatos de pago verificables</td></tr>
+      <tr><td><b>Cumplimiento</b></td><td>Transparencia: el cliente sabe que habla con IA</td><td>Clasificación AI Act y base legal RGPD en cada spec</td><td>Spec + logs + evals como documentación técnica auditable</td><td>Revisión de decisiones automatizadas (art. 22 RGPD), protección del consumidor en compras delegadas</td></tr>
+      <tr><td><b>Datos</b></td><td>Índice RAG de catálogo, políticas y FAQs</td><td>APIs en tiempo real de stock, pedido y cliente</td><td>Eventos de negocio y capa semántica</td><td>Feeds estructurados para agentes externos</td></tr>
+      <tr><td><b>Operación</b></td><td>Logs de uso</td><td>Trazas por ejecución, evals ligados a la spec, coste por agente</td><td>Evals que bloquean despliegues, SLOs, presupuestos</td><td>A/B de agentes, optimización continua de calidad y coste</td></tr>
+      <tr><td><b>Personas</b></td><td>Formación en uso seguro</td><td>Owners de negocio por agente; operadores HITL</td><td>Centro de excelencia; roles rediseñados</td><td>Equipos que supervisan flotas de agentes</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Escala de autonomía</th><th>Qué puede hacer el agente</th><th>Requisito mínimo (min de D6, D7, D8)</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">A0</td><td>Sugiere; un humano ejecuta</td><td class="mono">&lt; 2</td></tr>
+      <tr><td class="mono">A1</td><td>Actúa con aprobación humana previa</td><td class="mono">2 – 3</td></tr>
+      <tr><td class="mono">A2</td><td>Actúa sola dentro de límites, con revisión posterior</td><td class="mono">3 – 4</td></tr>
+      <tr><td class="mono">A3</td><td>Actúa sola con presupuesto, monitorización y kill-switch</td><td class="mono">≥ 4</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="sdd">
+  <div class="sec-head">
+    <div class="eyebrow">07 · Enfoque SDD</div>
+    <h2>La spec es la fuente de verdad, dos veces</h2>
+    <p class="muted">El mismo ciclo se usa para construir el módulo dentro de gotIA y para cada agente que el commerce despliegue después. El código, los prompts, las políticas y los evals se derivan de la spec y se regeneran cuando cambia.</p>
+  </div>
+  <div class="flow">
+    <div class="n"><b>constitution.md</b><small>principios no negociables</small></div><span class="ar">→</span>
+    <div class="n"><b>as-is.spec</b><small>punto de partida</small></div><span class="ar">+</span>
+    <div class="n"><b>target.spec</b><small>estado objetivo</small></div><span class="ar">→</span>
+    <div class="n"><b>diff = roadmap</b><small>iniciativas</small></div><span class="ar">→</span>
+    <div class="n"><b>agent.spec.md</b><small>uno por agente</small></div><span class="ar">→</span>
+    <div class="n"><b>plan · tasks</b><small>cómo y en qué orden</small></div><span class="ar">→</span>
+    <div class="n"><b>código · prompts · políticas</b><small>derivados</small></div><span class="ar">→</span>
+    <div class="n loop"><b>evals</b><small>verifican la spec · reevaluar</small></div>
+  </div>
+  <div class="cards3">
+    <div class="panel"><h3>Por qué SDD encaja aquí</h3><ul>
+      <li>La spec del agente fija qué tools usa, qué datos lee y cuánto dinero puede mover: es a la vez diseño, control de seguridad y documentación AI Act.</li>
+      <li>Reevaluar es regenerar el as-is y medir la distancia al target.</li>
+      <li>Cambiar de modelo o de proveedor no cambia la spec, solo se regenera y se vuelve a evaluar.</li></ul></div>
+    <div class="panel"><h3>Determinismo donde se decide</h3><ul>
+      <li>Scoring, techo, autonomía y costes: código puro, versionado, con tests.</li>
+      <li>LLM para entrevistar, extraer evidencias con cita y redactar specs.</li>
+      <li>Un LLM nunca inventa una puntuación ni una cifra de coste.</li></ul></div>
+    <div class="panel"><h3>Gobierno derivado de la spec</h3><ul>
+      <li>Límites de la spec (importe, datos, horario) se compilan a políticas en runtime.</li>
+      <li>Criterios de aceptación se convierten en evals que bloquean despliegues.</li>
+      <li>Subir de A1 a A2 exige la evidencia que la spec declara.</li></ul></div>
+  </div>
+  <pre class="tree">gotia-agentic-assessment/
+├─ memory/constitution.md                     <span class="c"># 9 artículos: spec como verdad, gobierno como techo, autonomía progresiva…</span>
+├─ specs/001-agentic-readiness-assessment/
+│  ├─ spec.md                                 <span class="c"># 8 historias con criterios de aceptación, RF y RNF</span>
+│  ├─ maturity-model.md                       <span class="c"># 10 capas, pesos, N1–N5, algoritmo de scoring</span>
+│  ├─ plan.md                                 <span class="c"># opciones A/B/C, arquitectura del módulo, riesgos, hitos</span>
+│  ├─ data-model.md
+│  ├─ contracts/assessment-result.schema.json <span class="c"># contrato del as-is / target spec</span>
+│  └─ tasks.md                                <span class="c"># backlog M1–M4</span>
+├─ reference/
+│  ├─ use-case-catalog.md                     <span class="c"># 11 agentes para commerce</span>
+│  ├─ roadmap-cost-model.md                   <span class="c"># fases F0–F3 y fórmula de coste</span>
+│  └─ architecture-evolution.md               <span class="c"># etapas E0–E4</span>
+└─ templates/agent-spec-template.md           <span class="c"># spec obligatoria por agente</span></pre>
+</section>
+
+<section id="producto">
+  <div class="sec-head">
+    <div class="eyebrow">08 · Encaje en gotIA</div>
+    <h2>Opciones evaluadas y recomendación</h2>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Opción</th><th>Qué es</th><th>A favor</th><th>En contra</th><th>Decisión</th></tr></thead>
+    <tbody>
+      <tr><td><b>A</b> Cuestionario estático</td><td>Formulario e informe plantilla</td><td>Barato y rápido</td><td>Commodity; sin evidencias; no genera specs</td><td><span class="pill p-info">Gratuito, captación</span></td></tr>
+      <tr><td><b>B</b> Asistido por agentes + consultor</td><td>Entrevista adaptativa, evidencias con cita, scoring determinista, specs generadas, firma humana</td><td>Diferencial, escalable, creíble; puerta a la implantación</td><td>Hay que construir motor y evals</td><td><span class="pill p-good">v1 recomendada</span></td></tr>
+      <tr><td><b>C</b> Autónomo con conectores</td><td>Descubrimiento automático en plataforma, OMS, PIM, CRM</td><td>Objetividad y reevaluación continua</td><td>Coste de conectores, fricción de accesos, superficie de seguridad</td><td><span class="pill p-warn">v2, 2–3 plataformas</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid2">
+    <div class="panel" style="display:grid;gap:8px"><h3>Construir el módulo</h3>
+      <p style="font-size:14px">M1 modelo y motor (sem. 1–4) · M2 entrevista y evidencias (5–8) · M3 generadores y exportación (9–11) · M4 pilotos y calibración (12–16).</p>
+      <p style="font-size:14px">Equipo: PM, 2 ingenieros, ingeniero de IA/evals, consultor senior y diseñador a tiempo parcial. Coste estimado <span class="mono">140–190 k€</span>.</p>
+      <p style="font-size:14px">Precio orientativo del assessment: <span class="mono">8 k€</span> Pyme · <span class="mono">30 k€</span> mid-market · <span class="mono">90 k€</span> enterprise, descontable de la implantación (pendiente de decidir).</p></div>
+    <div class="panel" style="display:grid;gap:8px"><h3>Riesgos del producto</h3>
+      <ul style="margin:0;padding-left:18px;font-size:14px;display:grid;gap:4px">
+        <li><b>Credibilidad de costes</b>: horquillas, supuestos visibles, calibración con pilotos.</li>
+        <li><b>Commoditización</b>: el diferencial son las specs ejecutables y la continuidad hacia implantación.</li>
+        <li><b>Prompt injection en documentos del cliente</b>: extracción con schema y sin tools con efectos.</li>
+        <li><b>Obsolescencia</b> de protocolos y precios de modelos: catálogos versionados, revisión trimestral.</li>
+        <li><b>Responsabilidad</b>: firma de consultor y alcance explícito.</li></ul></div>
+  </div>
+</section>
+
+<footer>Prototipo del módulo ARA de gotIA. Puntuaciones y costes calculados con las reglas de <span class="mono">maturity-model.md</span> v1.0.0 y <span class="mono">roadmap-cost-model.md</span>. El perfil y las cifras son de ejemplo y deben calibrarse con pilotos reales.</footer>
+</div>
+
+<script>
+(function(){
+const DIMS=[
+  {id:"D1",n:"Estrategia y valor",d:"Patrocinio, tesis de valor, KPIs",w:10,cur:2.5,tgt:4},
+  {id:"D2",n:"Procesos y specs",d:"Procesos y reglas explícitas, capacidad SDD",w:10,cur:2.5,tgt:3.5},
+  {id:"D3",n:"Datos y conocimiento",d:"Catálogo, cliente, stock en tiempo real",w:14,cur:2.5,tgt:4},
+  {id:"D4",n:"Integración y tools",d:"APIs de OMS, ERP, CRM, PIM; MCP",w:12,cur:3,tgt:4},
+  {id:"D5",n:"Plataforma agéntica",d:"Gateway, runtime, memoria, RAG",w:10,cur:2,tgt:3.5},
+  {id:"D6",n:"Gobernanza y cumplimiento",d:"Owners, registro, HITL, AI Act, RGPD",w:12,cur:1.5,tgt:4},
+  {id:"D7",n:"Seguridad e identidad",d:"Identidad de agente, privilegios, injection",w:12,cur:2.5,tgt:4},
+  {id:"D8",n:"Operación y FinOps",d:"Evals, trazas, SLOs, coste por tarea",w:8,cur:1,tgt:3.5},
+  {id:"D9",n:"Personas y organización",d:"Habilidades, CoE, cambio",w:7,cur:2,tgt:3.5},
+  {id:"D10",n:"Comercio agent-facing",d:"Vender a agentes de terceros",w:5,cur:1,tgt:3}
+];
+const SAMPLE=DIMS.map(d=>[d.cur,d.tgt]);
+const UC=[
+  ["UC-01","Atención: pedidos y devoluciones","−30/−50 % tickets N1",["D3","D4","D7"],"A1→A2"],
+  ["UC-02","Enriquecimiento de catálogo","−60 % time-to-market de producto",["D3","D2"],"A1"],
+  ["UC-03","Asistente de compra conversacional","+conversión, +ticket medio",["D3","D4","D10"],"A1"],
+  ["UC-04","Pricing y promociones","+1–3 pp de margen",["D3","D4","D6","D8"],"A1→A2"],
+  ["UC-05","Reposición e inventario","−roturas y −sobrestock",["D3","D4","D8"],"A1→A2"],
+  ["UC-06","Segmentación y campañas","+ROI de campañas",["D3","D6"],"A1"],
+  ["UC-07","Revisión de fraude","−contracargos",["D3","D7","D6"],"A1"],
+  ["UC-08","Facturas y conciliación","−70 % trabajo manual",["D2","D4"],"A1→A2"],
+  ["UC-09","Storefront para agentes de terceros","Canal de venta nuevo",["D4","D7","D10"],"A2"],
+  ["UC-10","Onboarding de sellers","Escala del marketplace",["D2","D3","D4"],"A1"],
+  ["UC-11","Copiloto interno de operaciones","Decisiones más rápidas",["D3","D5"],"A0"]
+];
+const $=s=>document.querySelector(s);
+const fmt1=v=>v.toFixed(1).replace(".",",");
+const fmt2=v=>v.toFixed(2).replace(".",",");
+const keur=v=>Math.round(v).toLocaleString("es-ES")+" k€";
+
+// sliders
+const host=$("#dims");
+DIMS.forEach((d,i)=>{
+  const row=document.createElement("div");row.className="dim";
+  row.innerHTML=`<div class="name"><b>${d.id} · ${d.n} <span class="wtag">${d.w}%</span></b><small>${d.d}</small></div>
+  <div class="ctl"><label for="c${i}">act <output id="oc${i}"></output></label><input id="c${i}" type="range" min="1" max="5" step="0.5"></div>
+  <div class="ctl"><label for="t${i}">obj <output id="ot${i}"></output></label><input id="t${i}" class="t" type="range" min="1" max="5" step="0.5"></div>`;
+  host.appendChild(row);
+});
+function load(vals){vals.forEach((v,i)=>{$("#c"+i).value=v[0];$("#t"+i).value=v[1];});}
+load(SAMPLE);
+host.addEventListener("input",update);
+$("#reset").addEventListener("click",()=>{load(SAMPLE);update();});
+
+function read(){return DIMS.map((d,i)=>({...d,cur:+$("#c"+i).value,tgt:+$("#t"+i).value}));}
+
+function score(ds){
+  const by=Object.fromEntries(ds.map(d=>[d.id,d]));
+  const ipa=ds.reduce((s,d)=>s+d.cur*d.w,0)/100;
+  const ceil=Math.min(by.D6.cur,by.D7.cur)+1;
+  const eff=Math.min(ipa,ceil);
+  const base=Math.min(by.D6.cur,by.D7.cur,by.D8.cur);
+  const aut=base<2?0:base<3?1:base<4?2:3;
+  const gaps=ds.map(d=>{
+    const g=Math.max(0,d.tgt-d.cur);
+    const blk=(["D6","D7","D8"].includes(d.id)&&d.cur<3)?1.5:1;
+    return {...d,gap:g,blk,prio:g*d.w*blk};
+  }).sort((a,b)=>b.prio-a.prio);
+  return {by,ipa,ceil,eff,base,aut,gaps};
+}
+
+function radar(ds){
+  const svg=$("#radar"),cx=220,cy=195,R=140,n=ds.length;
+  const pt=(i,v)=>{const a=-Math.PI/2+i*2*Math.PI/n;const r=R*(v-0)/5;return [cx+r*Math.cos(a),cy+r*Math.sin(a)];};
+  let h="";
+  for(let k=1;k<=5;k++){
+    const p=ds.map((_,i)=>pt(i,k).map(x=>x.toFixed(1)).join(",")).join(" ");
+    h+=`<polygon points="${p}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  }
+  ds.forEach((d,i)=>{const [x,y]=pt(i,5);h+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`;
+    const [lx,ly]=pt(i,5.75);const anchor=Math.abs(lx-cx)<8?"middle":(lx>cx?"start":"end");
+    h+=`<text x="${lx}" y="${ly+4}" text-anchor="${anchor}" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">${d.id}</text>`;});
+  for(let k=1;k<=5;k++){const [x,y]=pt(0,k);h+=`<text x="${x+4}" y="${y+3}" font-family="IBM Plex Mono, monospace" font-size="9" fill="var(--muted)">${k}</text>`;}
+  const poly=(key,col,dash,fill)=>{const p=ds.map((d,i)=>pt(i,d[key]).map(x=>x.toFixed(1)).join(",")).join(" ");
+    return `<polygon points="${p}" fill="${fill}" fill-opacity="0.14" stroke="${col}" stroke-width="2" ${dash?'stroke-dasharray="5 4"':''}/>`;};
+  h+=poly("tgt","var(--target)",true,"var(--target)");
+  h+=poly("cur","var(--accent)",false,"var(--accent)");
+  ds.forEach((d,i)=>{const [x,y]=pt(i,d.cur);h+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--accent)"/>`;});
+  svg.innerHTML=h;
+}
+
+function useCases(s){
+  const minAut=t=>+t.match(/A(\d)/)[1];
+  $("#uc").innerHTML=UC.map(([id,n,val,deps,aut])=>{
+    const v=Math.min(...deps.map(d=>s.by[d].cur))/5;
+    const need=minAut(aut);let st,cls;
+    if(v>=0.5&&need<=s.aut){st="Listo para piloto";cls="p-good";}
+    else if(v>=0.5){st=`Listo en A${s.aut}${s.aut===0?" (solo sugiere)":""}`;cls="p-info";}
+    else if(v>=0.4){st="Tras fundamentos (F1)";cls="p-warn";}
+    else{st="Requiere remediación";cls="p-bad";}
+    const weak=deps.filter(d=>s.by[d].cur/5<0.5);
+    return `<tr><td><span class="mono muted">${id}</span> ${n}</td><td>${val}</td><td class="mono">${deps.map(d=>weak.includes(d)?`<b style="color:var(--bad)">${d}</b>`:d).join(" ")}</td><td class="mono">${aut}</td><td class="num">${fmt2(v)}</td><td><span class="pill ${cls}">${st}</span></td></tr>`;
+  }).join("");
+}
+
+function update(){
+  const ds=read();
+  ds.forEach((d,i)=>{$("#oc"+i).textContent=fmt1(d.cur);$("#ot"+i).textContent=fmt1(d.tgt);});
+  const s=score(ds);
+  $("#k-ipa").textContent=fmt2(s.ipa);
+  $("#k-ceil").textContent=fmt1(s.ceil);
+  $("#k-lvl").textContent="N"+Math.max(1,Math.floor(s.eff));
+  $("#k-aut").textContent="A"+s.aut;
+  radar(ds);
+  // explanation
+  const lowGov=["D6","D7","D8"].filter(k=>s.by[k].cur===s.base).map(k=>`${k} ${s.by[k].n.toLowerCase()} (${fmt1(s.by[k].cur)})`);
+  const capped=s.ceil<s.ipa;
+  const ex=$("#explain");
+  ex.className="callout"+(s.aut>=2&&!capped?" ok":"");
+  ex.innerHTML=(capped?`<b>El techo recorta el nivel.</b> Tu IPA es ${fmt2(s.ipa)}, pero gobernanza y seguridad limitan el nivel efectivo a ${fmt1(s.ceil)}. `:`<b>Nivel N${Math.max(1,Math.floor(s.eff))}.</b> `)+
+    `La autonomía máxima recomendada hoy es <b>A${s.aut}</b>, limitada por ${lowGov.join(" y ")}. `+
+    (s.aut<2?"Ningún agente debería actuar sin aprobación humana hasta subir estas capas.":"Puedes pilotar agentes con acciones autónomas acotadas en dominios con datos maduros.");
+  // gaps
+  const max=Math.max(...s.gaps.map(g=>g.prio),1);
+  $("#gaps").innerHTML=s.gaps.filter(g=>g.prio>0).map(g=>`<div class="gap"><span class="lbl" title="${g.n}">${g.id} ${g.n}</span><div class="bar"><span class="${g.blk>1?"blk":""}" style="width:${(g.prio/max*100).toFixed(1)}%"></span></div><span class="mono" style="text-align:right">${Math.round(g.prio)}</span></div>`).join("")||`<p class="muted">Sin brechas: el estado actual alcanza el objetivo.</p>`;
+  const top=s.gaps.filter(g=>g.prio>0).slice(0,3);
+  const blockers=s.gaps.filter(g=>g.blk>1&&g.gap>0);
+  $("#gap-read").innerHTML=
+    (blockers.length?`<p><b>Primero, lo que bloquea:</b> ${blockers.map(g=>g.n.toLowerCase()).join(", ")}. Sin estas capas, cualquier agente queda en A${s.aut} por mucho que mejoren datos o integración.</p>`:`<p><b>Sin bloqueos de gobierno, seguridad u operación.</b> El foco puede ir a datos, integración y casos de uso.</p>`)+
+    (top.length?`<p><b>Top 3 de prioridad:</b> ${top.map(g=>`${g.id} (${fmt1(g.cur)} → ${fmt1(g.tgt)})`).join(", ")}.</p>`:"")+
+    `<p><b>En paralelo:</b> 1–2 quick wins de bajo riesgo (fichas de producto, copiloto interno) para demostrar valor mientras se construyen los fundamentos.</p>`;
+  useCases(s);
+  cost(s);
+}
+
+// cost
+const SIZE={pyme:{f0:8,fund:35,rem:20,gov:15,plat:12,mul:.6},mid:{f0:30,fund:150,rem:90,gov:60,plat:48,mul:1},ent:{f0:90,fund:500,rem:300,gov:200,plat:180,mul:1.6}};
+let size="mid";
+document.querySelectorAll("#size button").forEach(b=>{b.addEventListener("click",()=>{size=b.dataset.v;update();});});
+["#a-s","#a-m","#a-c","#inter","#tok","#ppm"].forEach(id=>$(id).addEventListener("input",update));
+const num=id=>Math.max(0,+$(id).value||0);
+function cost(s){
+  document.querySelectorAll("#size button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===size));
+  const p=SIZE[size];
+  const gapF=Math.min(1.5,Math.max(.25,((Math.max(0,s.by.D3.tgt-s.by.D3.cur)+Math.max(0,s.by.D4.tgt-s.by.D4.cur))/2)/2));
+  const agents=(num("#a-s")*25+num("#a-m")*70+num("#a-c")*160)*p.mul;
+  const rem=p.rem*gapF;
+  const inv=p.f0+p.fund+rem+p.gov+agents;
+  const llm=num("#inter")*12*num("#tok")/1e6*num("#ppm")/1000;
+  const mant=.18*agents;
+  const opx=p.plat+mant+llm;
+  $("#c-inv").textContent=keur(inv);$("#c-inv-r").textContent=`horquilla ${keur(inv*.8)} – ${keur(inv*1.3)}`;
+  $("#c-opx").textContent=keur(opx);$("#c-opx-r").textContent=`horquilla ${keur(opx*.8)} – ${keur(opx*1.3)}`;
+  const parts=[["F0 Assessment y specs",p.f0,"var(--muted)"],["Fundamentos de plataforma",p.fund,"var(--accent)"],[`Datos e integración (×${fmt2(gapF)})`,rem,"var(--target)"],["Gobierno, formación y cambio",p.gov,"var(--good)"],["Construcción de agentes",agents,"var(--ink)"]];
+  $("#c-stack").innerHTML=parts.map(([n,v,c])=>`<span title="${n}" style="flex:${v};background:${c}"></span>`).join("");
+  $("#c-tbl").innerHTML=parts.map(([n,v,c])=>`<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${c};margin-right:8px;vertical-align:-1px"></i>${n}</td><td class="num">${keur(v)}</td></tr>`).join("")+
+    `<tr><td class="muted">Operación: plataforma e infraestructura</td><td class="num">${keur(p.plat)}/año</td></tr><tr><td class="muted">Operación: mantenimiento de agentes (18 %)</td><td class="num">${keur(mant)}/año</td></tr><tr><td class="muted">Operación: consumo de modelos</td><td class="num">${(llm).toLocaleString("es-ES",{maximumFractionDigits:1})} k€/año</td></tr>`;
+  const share=llm/opx*100;
+  $("#c-read").textContent=`El consumo de modelos supone el ${share.toFixed(0)} % de la operación anual. El coste real está en datos, integración, plataforma y personas, que es justo lo que mide el assessment.`;
+  $("#formula").textContent=
+`inversión = F0 + fundamentos + remediación × factor_brecha + gobierno
+          + (25·simples + 70·medios + 160·complejos) × multiplicador
+operación = plataforma + 18 % × agentes + consumo_modelos
+consumo   = interacciones/mes × 12 × tokens ÷ 10⁶ × €/M tokens
+factor_brecha = media(brecha D3, D4) ÷ 2, acotado a [0,25 ; 1,5] = ${fmt2(gapF)}
+multiplicador = ${p.mul}  ·  horquilla −20 % / +30 %`;
+}
+
+// architecture
+const STAGES=[
+  ["E0","Punto de partida","Integraciones punto a punto y uso de IA fuera de control. Es el punto de partida típico de un commerce mid-market."],
+  ["E1","Asistida","Un único punto de acceso a modelos con registro y redacción de datos personales, y un índice de conocimiento. Llegan los primeros copilotos. Inicio de F1."],
+  ["E2","Agentes con tools","Las APIs de negocio se exponen como herramientas MCP con permisos por operación. Cada agente tiene identidad propia y las acciones sensibles pasan por una bandeja de aprobación. Fin de F1."],
+  ["E3","Orquestada","Un orquestador coordina agentes especializados que reaccionan a eventos de negocio. Las políticas se derivan de la spec y se aplican en runtime. F2."],
+  ["E4","Agentic-native","El catálogo y el checkout se abren a agentes de terceros, con pagos delegados y mandatos verificables. Autonomía acotada con presupuesto y kill-switch. F3."]
+];
+// [label, from, until(optional), risk]
+const LAYERS=[
+  ["Canales",[["Web y app",0],["Marketplaces",0],["Atención al cliente",0],["Agentes de terceros (MCP público, ACP/UCP)",4]]],
+  ["Agentes",[["IA en cuentas personales (shadow AI)",0,0,true],["Copilotos",1],["Agentes con herramientas",2],["Orquestador + especialistas",3],["A2A con proveedores y transportistas",4]]],
+  ["Plataforma agéntica",[["Gateway de modelos",1],["Índice de conocimiento (RAG)",1],["Runtime de agentes",2],["Identidad por agente",2],["Bandeja de aprobación HITL",2],["Memoria",3],["Registro de agentes",3]]],
+  ["Tools e integración",[["Integraciones punto a punto",0,3],["Servidores MCP sobre APIs de negocio",2],["Bus de eventos",3],["Pagos delegados (mandatos)",4]]],
+  ["Sistemas core",[["Plataforma e-commerce",0],["ERP",0],["OMS / WMS",0],["PIM",0],["CRM / ESP",0],["Pasarela de pagos",0]]]
+];
+const SIDE=[
+  ["Gobernanza",[["Política de uso",1],["Registro y HITL",2],["Gobierno como código",3],["Reporting regulatorio",4]]],
+  ["Seguridad",[["Redacción de datos",1],["Mínimo privilegio",2],["Autorización por acción",3],["Zero-trust A2A",4]]],
+  ["Observabilidad y evals",[["Logs",1],["Trazas + evals",2],["Evals en CI, SLOs",3],["A/B de agentes",4]]],
+  ["FinOps",[["Coste por agente",2],["Presupuestos",3]]]
+];
+let stage=0;
+const tabs=$("#stages");
+tabs.innerHTML=STAGES.map(([id,n],i)=>`<button type="button" role="tab" id="tab-${id}" aria-selected="${i===0}"><b>${id}</b>${n}</button>`).join("");
+tabs.querySelectorAll("button").forEach((b,i)=>b.addEventListener("click",()=>{stage=i;arch();}));
+tabs.addEventListener("keydown",e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){stage=(stage+(e.key==="ArrowRight"?1:4))%5;arch();tabs.querySelectorAll("button")[stage].focus();}});
+function chip([l,from,until,risk]){
+  let c="comp";
+  if(until!==undefined&&stage>until)c+=" gone";
+  else if(from>stage)c+=" future";
+  else if(risk)c+=" risk";
+  else if(from===stage&&stage>0)c+=" new";
+  return `<span class="${c}">${l}</span>`;
+}
+function arch(){
+  tabs.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-selected",i===stage));
+  $("#stage-note").innerHTML=`<b>${STAGES[stage][0]} · ${STAGES[stage][1]}.</b> ${STAGES[stage][2]}`;
+  $("#layers").innerHTML=LAYERS.map(([n,cs])=>`<div class="layer"><span>${n}</span><div class="comps">${cs.map(chip).join("")}</div></div>`).join("");
+  $("#side").innerHTML=SIDE.map(([n,cs])=>`<div class="layer"><span>${n}</span><div class="comps">${cs.map(chip).join("")}</div></div>`).join("");
+}
+arch();
+update();
+})();
+</script>
